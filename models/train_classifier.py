@@ -22,21 +22,24 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 
 from sklearn.model_selection import GridSearchCV
-from sklearn.base import BaseEstimator, TransformerMixin
 
 def load_data(database_filepath):
+    # load data from database
     engine = create_engine('sqlite:///'+database_filepath)
-    df = pd.read_sql("SELECT * FROM data", engine)
+    df = pd.read_sql_table('data', engine)
     X = df['message']
     Y = df.drop(['id', 'message', 'original', 'genre'], axis = 1)
     category_names=Y.columns.values
     return X,Y,category_names
 
 def tokenize(text):
+    # Normalize text
     text = re.sub(r"[^a-zA-Z0-9]", " ", text.lower())
+    # Tokenize text
     words=word_tokenize(text)
-    
+    # Reduce words to their stems
     stemmer = PorterStemmer()
+    # Remove stop words
     words = [stemmer.stem(w) for w in words if w not in stopwords.words("english")]
     return words
 
