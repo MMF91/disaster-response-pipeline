@@ -24,6 +24,15 @@ from sklearn.metrics import classification_report
 from sklearn.model_selection import GridSearchCV
 
 def load_data(database_filepath):
+    '''
+    Load data from database as dataframe
+    Input:
+        database_filepath: File path of sql database
+    Output:
+        X: Message data 
+        Y: Categories data
+        category_names: Labels for 36 categories
+    '''
     # load data from database
     engine = create_engine('sqlite:///'+database_filepath)
     df = pd.read_sql_table('data', engine)
@@ -33,6 +42,13 @@ def load_data(database_filepath):
     return X,Y,category_names
 
 def tokenize(text):
+    '''
+    Tokenize and clean text
+    Input:
+        text: original message text
+    Output:
+        words: Tokenized text
+    '''
     # Normalize text
     text = re.sub(r"[^a-zA-Z0-9]", " ", text.lower())
     # Tokenize text
@@ -45,6 +61,12 @@ def tokenize(text):
 
 
 def build_model():
+    '''
+    Build a ML pipeline using ifidf, random forest, and gridsearch
+    Input: None
+    Output:
+        Results of GridSearchCV
+    '''
     pipeline = Pipeline([
         ('features', FeatureUnion([
             ('text_pipeline', Pipeline([
@@ -62,12 +84,28 @@ def build_model():
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
+    '''
+    Evaluate model performance using test data
+    Input: 
+        model: Model to be evaluated
+        X_test: Test data
+        Y_test: True lables for Test data
+        category_names: Labels for 36 categories
+    Output:
+        Print accuracy and classfication report for each category
+    '''
     Y_pred = model.predict(X_test)
-    Y_pred_pd = pd.DataFrame(Y_pred, columns = Y_test.columns)
-    for cn in category_names:
-        print(classification_report(Y_test[cn], Y_pred_pd[cn]))
+    print(classification_report(Y_test.iloc[:,1:].values, np.array([x[1:] for x in Y_pred]), target_names=category_names))
 
 def save_model(model, model_filepath):
+    '''
+    Save model as a pickle file 
+    Input: 
+        model: Model to be saved
+        model_filepath: path of the output pick file
+    Output:
+        A pickle file of saved model
+    '''
     pickle.dump(model, open(model_filepath, 'wb'))
 
 
